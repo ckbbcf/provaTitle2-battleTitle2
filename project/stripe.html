@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Kobra landing page</title>
+        <meta charset="UTF-8" /> 
+        <meta lang="IT">
+        <meta name="author" content="FloraSolutions" />
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"> </script>
+    <body>
+        <br>
+        <label>PAGINA CHECKOUT STRIPE</label>
+		<br>
+		<br>
+
+		
+        <button id="BTN" type="button"> ABBONATI </button>
+		<button id="LOGOUT" type="button"> LOGOUT </button>
+		
+		<script>
+			var login = document.getElementById("LOGOUT");
+			var compro = document.getElementById("BTN");
+			
+			compro.addEventListener("click", function (){
+				//QUI UTENTE METTE I SUOI DATI PER COMPRARE IL SERVIZIO
+				//I DATI VANNO MESSI NELLA TABELLA abbonamento
+				//MOLTO IMPORTANTE è RICEVERE IL CODICE UNIVOCO CHE RILASCIA STRIPE DOPO L'ATTIVAZIONE DELL'ABBONAMENTO
+				//VA SALVATO NELLA TABELLA UTENTE (codAbb) E CHIAVE UNIVOCA DELLA TABELLA abbonamento
+			});
+			
+			
+			login.addEventListener("click", function (){
+				//ELIMINO DATI LOCALI
+				localStorage.removeItem('username');
+				//RITORNO AL LOGIN
+				window.location.href = '/FloraSolutionsKobra/index.html';
+			});
+
+		</script>
+    </body>
+</html>

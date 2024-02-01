@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Kobra landing page</title>
+        <meta charset="UTF-8" /> 
+        <meta lang="IT">
+        <meta name="author" content="FloraSolutions" />
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"> </script>
+
+    <body>
+        <br>
+        <div>
+            <label>USERNAME</label>
+            <input 
+                id = "USN" 
+                type="text" 
+                placeholder = "username"
+            />
+        </div>
+        <br>
+        <div>
+            <label>PASSWORD</label>
+            <input 
+                id = "PWS" 
+                type="password" 
+            />
+        </div>
+		<br>
+        <button id="BTN" type="button"> LOGIN </button>
+		<a href="https://mikibersa.altervista.org/FloraSolutionsKobra/registrazione.html">
+			<h6> Registrazione </h6>
+		</a>
+		<!--- 
+			QUI UTENTE SI LOGGA PER ACCEDERE
+			AL PAGAMENTO
+			
+			SE NON HA ANCORA LE CREDENZIALI SI REGISTRA
+		--->
+		
+		<script> 
+			
+		var login = document.getElementById("BTN");
+		var user = document.getElementById("USN");
+		var pass = document.getElementById("PWS");
+		
+		login.addEventListener("click", function (){
+			
+			//CONTROLLO CHE SIANO CORRETTE LE CREDENZIALI	
+			if(!controllo("users", user.value, pass.value)){
+				console.log("CREDENZIALI NON CORRETTE");
+				return;
+			}
+			
+			console.log("ACCESSO");
+			
+			
+			//-> SALVA NEI DATI LOCALI DI LOGIN
+			localStorage.setItem('username', user.value);
+			
+			//-> PASSA ALLA PAGINA DI STRIPE PER FARE L'ABBONAMENTO
+			window.location.href = '/FloraSolutionsKobra/stripe.html';
+		});
+		
+		function controllo(tabella,username, password) {
+			var settings = {
+			  "url": "https://data.mongodb-api.com/app/data-qifbd/endpoint/data/v1/action/findOne",
+			  "method": "POST",
+			  "timeout": 0,
+			  "headers": {
+				"Content-Type": "application/json",
+				"api-key": "x3V3JgG4LY9AQjsSrfv3TrhHweg82i3mbjEbu6pYWTUvtTLUhCfYy5YaUcukzm96",
+			  },
+			  "data": JSON.stringify({
+				"dataSource": "Cluster0",
+				"database": "florakobra",
+				"collection": tabella,
+				"document": {
+					"username": username,
+					"password": password
+				  }
+			  }),
+			};
+			
+			$.ajax(settings).done(function (response) {
+				//NON RITORNA IL JSON DELL'UTENTE ALLORA CREDENZIALI SBAGLIATE
+			  if(respon["document"] == null) return false;
+			  else return true;
+			});
+		}
+		
+		</script>
+    </body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Kobra landing page</title>
+        <meta charset="UTF-8" /> 
+        <meta lang="IT">
+        <meta name="author" content="FloraSolutions" />
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"> </script>
+    <body>
+        <br>
+        <div>
+            <label>USERNAME</label>
+			<br>
+            <input 
+                id = "USN" 
+                type="text" 
+                placeholder = "username"
+            />
+        </div>
+		<br>
+		<div>
+            <label>NOME</label>
+			<br>
+            <input 
+                id = "NOME" 
+                type="text" 
+                placeholder = "nome"
+            />
+        </div>
+		<br>
+		<div>
+            <label>COGNOME</label>
+			<br>
+            <input 
+                id = "COGNOME" 
+                type="text" 
+                placeholder = "cognome"
+            />
+        </div>
+		<br>
+		<div>
+            <label>NUMERO DI TELEFONO</label>
+			<br>
+            <input 
+				id = "NUMTEL"  
+				type="tel" 
+				name="numtel"
+			/>
+        </div>
+		<br>
+		<div>
+            <label>EMAIL</label>
+			<br>
+            <input 
+                type="EMAIL" 
+				id="EMAIL" 
+				name="email"
+            />
+        </div>
+        <br>
+        <div>
+            <label>PASSWORD</label>
+			<br>
+            <input 
+                id = "PSW" 
+                type="password" 
+            />
+        </div>
+		<br>
+        <button id="BTN" type="button"> REGISTRAZIONE </button>
+		<!--- 
+			QUI UTENTE SI REGISTRA PER ACCEDERE
+			AL PAGAMENTO
+		
+		--->
+		<script> 
+			
+		var login = document.getElementById("BTN");
+		var user = document.getElementById("USN");
+		var email = document.getElementById("EMAIL");
+		var tel = document.getElementById("NUMTEL");
+		
+		var api = 'x3V3JgG4LY9AQjsSrfv3TrhHweg82i3mbjEbu6pYWTUvtTLUhCfYy5YaUcukzm96';
+		
+		var urlMdb = 'https://data.mongodb-api.com/app/data-qifbd/endpoint/data/v1';
+
+		var azione = '/action/insertOne';
+		
+		login.addEventListener("click", function (){
+			/*
+			-> INSERIMENTO DEI DATI
+			-> MEMORIZZAZIONE NEL DB (TABELLA UTENTE)
+			-> CONTROLLA ALL'INTERNO DEL DB
+			-> PASSA ALLA PAGINA DI STRIPE
+			*/
+			
+			//CONTROLLO INSERIMENTO DEI DATI 
+			//STRETTAMENTE OBBLIGATORI USERNAME, EMAIL, TELEFONO, PASSWORD
+			
+			if(user.value == ''){
+				console.log("CAMPO USERNAME NON INSERITO");
+				return;
+			}
+
+			//CONTROLLO SINTASSI NUMERO DI CELLULARE
+			if(isNaN(tel.value) || tel.value == ''){
+				console.log("CAMPO TELEFONO NON CORRETTO");
+				return;
+			}
+			
+			//CONTROLLO SINTASSI EMAIL
+			if(!email.checkValidity() || email.value == ''){
+				console.log("CAMPO EMAIL NON CORRETTO");
+				return;
+			}
+			
+			//CONTROLLO SINTASSI PASSWORD
+			if(document.getElementById("PSW").value == ''){
+				console.log("CAMPO PASSWORD NON INSERITO");
+				return;
+			}
+			
+			
+			//CONTROLLARE CHEL'USERAME SIA UNICO ED ANCHE L'EMAIL
+			if(!controllo("users", "username", user.value) || !controllo("users", "email", email.value)){
+				console.log("ESISTE GIà");
+				return;
+			}
+			
+			console.log("PROCEDO A REGISTRARE");
+			
+			//CREO JASON DEI DATI DA MEMORIZZARE NEL DATABASE NELLA TABELLA users
+			var json = {
+				  "username": user.value,
+				  "nome": document.getElementById("NOME").value,
+				  "cognome":  document.getElementById("COGNOME").value, 
+				  "e-mail": document.getElementById("EMAIL").value,
+				  "telefono": document.getElementById("NUMTEL").value,
+				  "password": document.getElementById("PSW").value,
+				  //codAbb PER ORA è VUOTO MA UNA VOLTA CHE L'UTENTE FA L'ABBONAMENTO QUI DEVE ANDARE IL CODICE ABBONAMENTO CHE RITORNA STRIPE
+				  "codAbb" : ""
+				};
+				
+			//CONTROLLO CORRETTA RICHIESTA DI INSERIMENTO DEI DATI
+			if(!registrazione("users", json)){
+				console.log("ERRORE DURANTE REGISTRAZIONE");
+				return;
+			}
+			
+			console.log("REGISTRAZIONE AVVENUTA CON SUCCESSO");
+
+			//setto variabile locale
+			localStorage.setItem('username', user.value);
+			
+			//PASSO ALLA PAGINA DI ABBONAMENTO
+			window.location.href = '/FloraSolutionsKobra/stripe.html';
+		});
+		
+		function validateEmail(email) {
+			//let res = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+			let res = /^([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+			return res.test(email);
+		}
+		
+		function registrazione(tabella,json) {
+			//RICHIETSA REGISTRAZIONE DEL DATO
+			var settings = {
+			  "url": urlMdb+ "/action/insertOne",
+			  "method": "POST",
+			  "timeout": 0,
+			  "headers": {
+				"Content-Type": "application/json",
+				"api-key": api,
+			  },
+			  "data": JSON.stringify({
+				"dataSource": "Cluster0",
+				"database": "florakobra",
+				"collection": tabella,
+				"document": json
+			  }),
+			};
+			
+			$.ajax(settings).done(function (response) {
+			
+				//dentro a try catch
+				//CASO IN CUI NON CORRETTA SINTASSI DI CHIAMA
+			  if(response["insertedId"] != null) return true;
+			  return false;
+			  
+			});
+		}
+		
+		function controllo(tabella,campo, valore) {
+			//RICHIETSA CONTROLLO DELL'ESISTENZA GIà DEL SINGOLO CAMPO (USERNAME O EMAIL)
+			var settings = {
+			  "url": urlMdb + "/action/findOne",
+			  "method": "POST",
+			  "timeout": 0,
+			  "headers": {
+				"Content-Type": "application/json",
+				"api-key": api,
+			  },
+			  "data": JSON.stringify({
+				"dataSource": "Cluster0",
+				"database": "florakobra",
+				"collection": tabella,
+				"document": {
+					campo: valore
+				  }
+			  }),
+			};
+			
+			$.ajax(settings).done(function (response) {
+				//SE NON ESISTE GIà ALLORA RITORNO TRUE
+			  if(respon["document"] == null) return true;
+			  else return false;
+			});
+		}
+		
+		
+		
+		
+		</script>
+    </body>
+</html>
